@@ -1,4 +1,5 @@
 # import dependencies
+from array import array
 import numpy as np
 from keras.applications.inception_v3 import InceptionV3, preprocess_input
 from keras.models import Model
@@ -8,61 +9,96 @@ from keras.layers import LSTM, Embedding, Dense, Activation, Flatten, Reshape, D
 from keras.layers.merge import add
 from keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
+from typing import NewType
 
-
-
-
-
-def resize(image_path, new_size=(299,299)):
+# preprocess image for transfer learning
+# with InceptionV3
+def preprocess(image_path, resize=(350,350)):
     """
-    Reshape input img to new_size
-    Input:
-        image_path: string designating path to image file
-        new_size: tuple denoting output size. Defaults to (299 x 299)
+    Preprocesses image using InceptionV3. 
+    Input: 
+        image_path: sring denoting path to image file
+        resize: tuple of ints dentoing size to resize image to
+    Returns: 
+        numpy.array or a tf.Tensor with type float32
     """
-    # load image into PIL format
-    img = image.load_img(image_path, target_size=new_size)
 
-    # convert PIL image to Numpy array
-    X = image.img_to_array(img)
+    # load and convert image to numpy array
+    img_pil = image.load_img(image_path, target_size=resize)
+    img_numpy = image.img_to_array(img_pil)
 
     # expand shape of array
-    X = np.expand_dims(X, axis=0)
+    img_expanded = np.expand_dims(img_numpy, axis=0)
 
-    # preprocess and return
-    return preprocess_input(X)
+    # preprocess for InceptionV3 and return
+    return preprocess_input(img_expanded)
 
+# encode preprocessed image using InceptionV3
 def encode(image_path):
     """
-    Resizes image and generates a feature vector using InceptionV3
+    Instantiates InceptionV3 for transfer learning. Passes preprocessed image 
+    file to InceptionV3 model.  
+    Input: 
+        image_path: string denoting path to image file
+    Returns:
+        [...]
     """
 
-    # instantiate V3 model
+    # instantiate V3 model and set weights
     transfer_model = InceptionV3(weights='imagenet')
 
-    # remove softmax layer - not needed for image classification
+    # remove softmax layer as not needed for image classification
     new_transfer_model = Model(transfer_model.input, 
                                transfer_model.layers[-2].output)
 
-    # resize img
-    img_resized = resize(image_path)
+    # preprocess and generate predictions
+    img_preprocessed = resize(image_path)
+    img_preds = new_transfer_model.predict(img_preprocessed)
 
-    # vectorize image
-    img_vect = new_transfer_model.predict(img_resized)
+    # reshape and return
+    return np.reshape(img_preds, img_preds.shape[1])
 
-def generate_captions(image_path, search_type='greedy', k=3):
+# function to set up model
+def generate_caption(image_path, in_text='startseq', max_length=80,
+                     word_to_idx, idx_to_word, model):
     """
-    Encodes image file found at image_path using InceptionV3. 
-    Encoded image passed to trained model and returns generated captions using 
-    either greedy search or beam search. 
-
+    Use greedy search and cloud_trained model to generate captions.
     Input:
-        image_path: path to image
-        search_type: string denoting search type (greedy or beam)
-        k: number of neighbors to use if search_type==beam
-
-    Returns:
-        Caption describing input photo.
+        image_path: string denoting path to image file
+        in_text: text denoting a start sequence, defaults to startseq
+        max_length: max_length of caption
+        word_to_idx: dictionary of word to index key value pairs
+        idx_to_word: dictionary of index to word key value pairs
+        model: model used to generate predictions
+    Returns: 
+        string description of image contents
     """
-    
-    return None
+    # build caption starting with startseq
+    for i in range(max_length):
+
+        # set up sequence: get index for each word in in_text
+        # check that the word is in word_to_idx
+        # pad sequences so all the same length
+        sequence = [word_to_idx[j] for j in in_text.split() if j in word_to_idx]
+        sequence = pad_sequences([sequence], maxlen=max_length)
+
+        # use model to generate predictions 
+        # get highest probability prediction for next word
+        y_hat = model.predict([image_path, sequence], verbose=0)
+        y_hat = np.argmax(y_hat)
+
+        # convert model prediction back to string
+        # append word to in_text
+        word = idx_to_word[y_hat]
+        in_text += ' ' + word
+
+        # if finished building caption, break
+        if word == 'endseq':
+            break
+        
+    # return caption
+    caption_tokens = in_text.split() # split in_text by word
+    caption_tokens = caption_tokens[1:-1] # ignore startseq and endseq
+    return ' '.join(caption_tokens) # return string caption
+
+
