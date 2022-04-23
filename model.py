@@ -118,25 +118,30 @@ def generate_caption(encoded_image, word_to_idx, idx_to_word,
     caption_tokens = caption_tokens[1:-1] # ignore startseq and endseq
     return ' '.join(caption_tokens) # return string caption
     
-# Load model and necessary objects
-trained_model = load_model('cloud_trained_model.h5')
 
-# load word_to_idx
-with open('cloud_files/word_to_idx.pickle', 'rb') as f:
-    word_to_idx = pickle.load(f)
+def main():
+    # Load model and necessary objects
+    trained_model = load_model('cloud_trained_model.h5')
 
-# load idx_to_word
-with open('cloud_files/idx_to_word.pickle', 'rb') as f:
-    idx_to_word = pickle.load(f)
+    # load word_to_idx
+    with open('cloud_files/word_to_idx.pickle', 'rb') as f:
+        word_to_idx = pickle.load(f)
 
-# test on image not in test set
-test_img_path = '/Users/addingtongraham/Desktop/kg.jpg'
+    # load idx_to_word
+    with open('cloud_files/idx_to_word.pickle', 'rb') as f:
+        idx_to_word = pickle.load(f)
 
-# encode img
-test_img_encoded = encode(test_img_path).reshape((1,2048))
+    # test on image not in test set
+    test_img_path = '/Users/addingtongraham/Desktop/running_dog.jpg'
 
-# generate captions
-caption = generate_caption(test_img_encoded, word_to_idx=word_to_idx, idx_to_word=idx_to_word, model=trained_model)
+    # encode img
+    test_img_encoded = encode(test_img_path).reshape((1,2048))
 
-print('test')
-print(f'Generated Caption:\n{caption}')
+    # generate captions
+    caption = generate_caption(test_img_encoded, word_to_idx=word_to_idx, idx_to_word=idx_to_word, model=trained_model)
+
+    print('test')
+    print(f'Generated Caption:\n{caption}')
+
+if __name__ == '__main__':
+    main()
