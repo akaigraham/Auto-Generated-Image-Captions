@@ -102,3 +102,28 @@ def generate_caption(image_path, in_text='startseq', max_length=80,
     return ' '.join(caption_tokens) # return string caption
 
 
+
+# Build Model
+def build_model(input_shape, max_length, embedding_dim, vocab_size):
+    """
+    Build model that will be used to auto-generate captions.
+    """
+
+    # create model
+    inputs_1 = Input(shape=(input_shape,))
+    fe1 = Dropout(0.5)(inputs_1)
+    fe2 = Dense(256, activation='relu')(fe1)
+    inputs_2 = Input(shape=(max_length,))
+    se1 = Embedding(vocab_size, embedding_dim, mask_zero=True)(inputs_2)
+    se2 = Dropout(0.5)(se1)
+    se3 = LSTM(256)(se2)
+
+    # create decoder
+    decoder_1 = add([fe2, se3])
+    decoder_2 = Dense(256, activation='relu')(decoder_1)
+    outputs = Dense(vocab_size, activation='softmax')(decoder2)
+
+    # return model
+    return Model(inputs=[inputs_1, inputs_2], outputs=outputs)
+
+
