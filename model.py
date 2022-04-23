@@ -15,16 +15,18 @@ from tensorflow.keras.utils import to_categorical
 
 def resize(image_path, new_size=(299,299)):
     """
-    Reshape input img to (299x299)
+    Reshape input img to new_size
+    Input:
+        image_path: string designating path to image file
+        new_size: tuple denoting output size. Defaults to (299 x 299)
     """
-
-    # load image
+    # load image into PIL format
     img = image.load_img(image_path, target_size=new_size)
 
-    # convert to array
+    # convert PIL image to Numpy array
     X = image.img_to_array(img)
 
-    # expand dimensions
+    # expand shape of array
     X = np.expand_dims(X, axis=0)
 
     # preprocess and return
