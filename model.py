@@ -1,4 +1,4 @@
-# import libraries
+# import dependencies
 import numpy as np
 from keras.applications.inception_v3 import InceptionV3, preprocess_input
 from keras.models import Model
@@ -8,6 +8,10 @@ from keras.layers import LSTM, Embedding, Dense, Activation, Flatten, Reshape, D
 from keras.layers.merge import add
 from keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
+
+
+
+
 
 def resize(image_path, new_size=(299,299)):
     """
