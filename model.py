@@ -118,6 +118,9 @@ def generate_caption(encoded_image, word_to_idx, idx_to_word,
     caption_tokens = caption_tokens[1:-1] # ignore startseq and endseq
     return ' '.join(caption_tokens) # return string caption
     
+def generate_beam_caption():
+    return None
+
 
 def main():
     # Load model and necessary objects
