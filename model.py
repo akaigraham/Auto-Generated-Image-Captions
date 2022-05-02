@@ -65,7 +65,7 @@ def encode(image_path):
     Input: 
         image_path: string denoting path to image file
     Returns:
-        [...]
+        Encoded image.
     """
 
     # preprocess and generate predictions
@@ -118,9 +118,6 @@ def generate_caption(encoded_image, word_to_idx, idx_to_word,
     caption_tokens = caption_tokens[1:-1] # ignore startseq and endseq
     return ' '.join(caption_tokens) # return string caption
     
-def generate_beam_caption():
-    return None
-
 
 def main():
     # Load model and necessary objects
@@ -137,7 +134,7 @@ def main():
     # test on image not in test set
     test_img_path = '/Users/addingtongraham/Desktop/running_dog.jpg'
 
-    # encode img
+    # encode img using InceptionV3
     test_img_encoded = encode(test_img_path).reshape((1,2048))
 
     # generate captions
